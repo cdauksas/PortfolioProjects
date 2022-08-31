@@ -1,0 +1,119 @@
+SELECT * 
+FROM `bike-share-360914.June.deaths` 
+Where continent is not null
+ORDER BY 3,4
+
+--Looking at Total Cases Vs Total Deaths
+SELECT Location, date, total_cases, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `bike-share-360914.June.deaths` 
+Where location = 'United States'
+ORDER BY 3,4
+
+
+--looking at Countries with Highest Infection Rate
+SELECT location, Population, MAX(total_cases) as HighestInfectionCount, MAX((total_cases/population))*100 as PercentPopulationInfected
+FROM `bike-share-360914.June.deaths` 
+--Where location = 'United States'
+Group by Location, Population
+Order By PercentPopulationInfected desc
+
+
+--Showing Countries with Highest Death Count per Population
+SELECT location, MAX(cast(Total_deaths as int)) as TotalDeathCount
+FROM `bike-share-360914.June.deaths` 
+--Where location = 'United States'
+Where continent is not null
+Group by Location
+Order By TotalDeathCount desc
+
+
+--Lets break things down by continent
+-- Showing Continents with the highest death count per population
+SELECT location, MAX(cast(Total_deaths as int)) as TotalDeathCount
+FROM `bike-share-360914.June.deaths` 
+--Where location = 'United States'
+Where continent is null
+Group by location
+Order By TotalDeathCount desc
+
+--GLOBBAL NUMBERS by date
+
+SELECT date, SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_cases)*100 as DeathPercentage--, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `bike-share-360914.June.deaths` 
+--Where location = 'United States'
+where continent is not null
+Group by Date
+ORDER BY 1,2
+
+--GLOBBAL NUMBERS total
+
+SELECT SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_cases)*100 as DeathPercentage--, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `bike-share-360914.June.deaths` 
+--Where location = 'United States'
+where continent is not null
+ORDER BY 1,2
+
+
+
+--Use CTE
+
+
+With PopvsVac (Continent, Location, Date, Population,new_vaccinations, RollingPeopleVaccinated)
+as
+-- Looking at Total Population vs Vaccinations
+(
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/Population)*100
+FROM `bike-share-360914.June.deaths` as dea
+Join `bike-share-360914.June.vaccines` as vac
+  ON dea.location = vac.location 
+  and dea.date = vac.date
+where dea.continent is not null
+--  order by 2,3
+)
+Select *,(RollingPeopleVaccinated/Population)*100 
+From PopvsVac
+  
+--Temp Table
+DROP table if exists PercentPouplationVaccinated
+Create Table PercentPouplationVaccinated
+(
+Continent as nvarchar(255),
+Location as nvarchar(255),
+Date as datetime,
+Population as numeric,
+Newvaccinations as numeric
+)
+
+Insert Into PercentPouplationVaccinated
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/Population)*100
+FROM `bike-share-360914.June.deaths` as dea
+Join `bike-share-360914.June.vaccines` as vac
+  ON dea.location = vac.location 
+  and dea.date = vac.date
+--where dea.continent is not null
+--  order by 2,3
+
+Select *,(RollingPeopleVaccinated/Population)*100 
+From PercentPouplationVaccinated
+ 
+
+
+
+
+ --Creating View to store data for later visualizations
+
+
+Create View bike-share-360914.June.PercentPopulationVaccinated as
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/Population)*100
+FROM `bike-share-360914.June.deaths` as dea
+Join `bike-share-360914.June.vaccines` as vac
+  ON dea.location = vac.location 
+  and dea.date = vac.date
+where dea.continent is not null
+ --order by 2,3
