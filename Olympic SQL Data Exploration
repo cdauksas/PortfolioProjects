@@ -1,0 +1,156 @@
+--These questions were formed from youtuber: techTQF. I used google bigquery with for these practice problems
+
+--20 Break down all olympic games where USA won a medal for Hockey and how many medals in each olympic games
+
+SELECT NOC, Sport, games, count(1) as medal  FROM `bike-share-360914.June.olympics` 
+Where sport = 'Hockey' AND NOC = 'USA' AND NOC <> 'NA'
+group by NOC, Sport, games
+order by medal desc
+
+
+--19  In which Sport/event, India has won highest medals.
+SELECT NOC, Sport, count(1) as total_medals  FROM `bike-share-360914.June.olympics` 
+Where NOC = 'IND' and medal <> 'NA'
+Group by NOC, Sport
+Order by total_medals desc
+
+--18. Which countries have never won gold medal but have won silver/bronze medals?
+With t1 AS
+( SELECT NOC,
+ SUM (case when Medal = 'Gold' then 1 else 0 end) as Gold,
+ SUM (case when Medal = 'Silver' then 1 else 0 end) as Silver,
+ SUM (case when Medal = 'Bronze' then 1 else 0 end) as Bronze,
+FROM `bike-share-360914.June.olympics`
+Group by NOC )
+
+SELECT NOC, Gold, Silver, Bronze From T1 Where Gold = 0 and (Silver >0 or Bronze > 0)
+
+--17 Identify which country won the most gold, most silver, most bronze medals and the most medals in each olympic games.
+
+With t1 AS
+( SELECT NOC, games,
+ SUM (case when Medal = 'Gold' then 1 else 0 end) as Gold,
+ SUM (case when Medal = 'Silver' then 1 else 0 end) as Silver,
+ SUM (case when Medal = 'Bronze' then 1 else 0 end) as Bronze,
+FROM `bike-share-360914.June.olympics`
+Group by games, NOC )
+
+SELECT distinct games, NOC, Gold, Silver, Bronze From T1 Order By Games
+
+
+--15 List down total gold, silver and broze medals won by each country corresponding to each olympic games
+SELECT NOC, games,
+ COUNT (case when Medal = 'Gold' then 1 end) as Gold,
+ COUNT (case when Medal = 'Silver' then 1 end) as Silver,
+ COUNT (case when Medal = 'Bronze' then 1 end) as Bronze,
+FROM `bike-share-360914.June.olympics`
+Group by NOC, games
+Order by games
+
+
+--14. List down total gold, silver and bronze medals won by each country.
+SELECT NOC,
+ COUNT (case when Medal = 'Gold' then 1 end) as Gold,
+ COUNT (case when Medal = 'Silver' then 1 end) as Silver,
+ COUNT (case when Medal = 'Bronze' then 1 end) as Bronze,
+FROM `bike-share-360914.June.olympics`
+Group by NOC
+Order by Gold desc
+
+--13. Fetch the top 5 most successful countries in olympics. Success is defined by no of medals won.
+SELECT NOC, count(1) as total_medals, ROW_NUMBER() OVER(ORDER BY COUNT(1) Desc) as Rank
+FROM `bike-share-360914.June.olympics`
+Where medal IN ('Silver', 'Bronze', 'Gold')
+Group by NOC
+Order by total_medals desc limit 5
+
+--12. Fetch the top 5 athletes who have won the most medals (gold/silver/bronze).
+SELECT name, count(1) as total_medals
+FROM `bike-share-360914.June.olympics`
+Where medal <> 'NA'
+Group By name
+order by total_medals desc
+
+--9. Fetch oldest athletes to win a gold medal
+SELECT * 
+FROM `bike-share-360914.June.olympics`
+Where medal = 'Gold' and Age <> 'NA'
+Order by Age desc
+
+--8. Fetch the total no of sports played in each olympic games.
+
+with t1 as
+      	(select distinct games, sport
+      	from `bike-share-360914.June.olympics`),
+        t2 as
+      	(select games, count(1) as no_of_sports
+      	from t1
+      	group by games)
+      select * from t2
+      order by no_of_sports desc;
+
+--7. Which Sports were just played only once in the olympics.
+With t1 as
+(
+  SELECT Distinct Games, sport
+  from `bike-share-360914.June.olympics`),
+    t2 as
+        (SELECT sport, count(1)as no_of_games
+        from t1
+        group by sport)
+        Select t2.*, t1.games
+        from t2
+        JOIN t1 on t1.sport = t2.sport
+        where t2.no_of_games = 1
+        order by t1.sport
+  
+  --6 Identify the sport which was played in all summer olympics.
+
+  with t1 as (
+    SELECT count (Distinct Games) as total_games
+  from `bike-share-360914.June.olympics`
+  Where season = 'Summer'
+  ),
+  t2 as
+  (SELECT Distinct Games, sport
+  from `bike-share-360914.June.olympics`
+  where season = 'Summer') , 
+  t3 as
+  (SELECT Sport, count(1) as no_of_games
+  from T2
+  Group by Sport)
+  SELECT *
+  from t3
+  join t1 on t1.total_games = t3.no_of_games
+  
+  --5. Which nation has participated in all of the olympic games
+  with tot_games as
+              (select count(distinct games) as total_games
+              from `bike-share-360914.June.olympics`),
+          countries as
+              (select games, nr.region as country
+              from `bike-share-360914.June.olympics` oh
+              join `bike-share-360914.June.olympics` nr ON nr.noc=oh.noc
+              group by games, nr.region),
+          countries_participated as
+              (select country, count(1) as total_participated_games
+              from countries
+              group by country)
+      select cp.*
+      from countries_participated cp
+      join tot_games tg on tg.total_games = cp.total_participated_games
+      order by 1;
+
+
+              (select games, nr.region as country
+              from `bike-share-360914.June.olympics` oh
+              join `bike-share-360914.June.olympics` nr ON nr.noc=oh.noc
+              group by games, nr.region),
+          countries_participated as
+              (select country, count(1) as total_participated_games
+              from countries
+              group by country)
+      select cp.*
+      from countries_participated cp
+      join tot_games tg on tg.total_games = cp.total_participated_games
+      order by 1;
