@@ -2,7 +2,7 @@
 ## UCL 2021 Kaggle Dataset - SQL Exploratory Data Analysis 
 - Pulled the top goal scorers for the 2021 UCL 
 - Looked at players performance compared to fouls commited
-[View the project here](https://github.com/cdauksas/PortfolioProjects/blob/main/UCL%20Query%20questions.sql)
+- [View the project here](https://github.com/cdauksas/PortfolioProjects/blob/main/UCL%20Query%20questions.sql)
 
 
 ##  Clyclistic Marekting Analysis in Sql and Tableau  
