@@ -10,8 +10,7 @@
 - Used SQL to clean Data
 - Built a presentation in Tableau for the marketing team and stakeholders
 - Use tidyverse to wrangle data, dplyr to clean data, lubridate to wrangle date attributes, ggplot2 to visualize data, and readr to save csv for further analysis.
-- [View the project here]	:white_check_mark:
-- [View the presentation here]	:white_check_mark:
+- [View the project here](https://github.com/cdauksas/BikeShare)	:white_check_mark:
 
 
 ##  Bellabeat Fitness Data Analysis in SQL and Visualization in Tableau 	:weight_lifting_woman:
